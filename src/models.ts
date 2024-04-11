@@ -14,3 +14,13 @@ export interface AppData {
   general: GeneralInfo;
   start: StartInfo;
 }
+
+export interface Data {
+  data: AppData;
+  version: number;
+}
+
+export interface QueueItem {
+  section: keyof AppData;
+  data: GeneralInfo | StartInfo;
+}

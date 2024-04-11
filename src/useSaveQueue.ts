@@ -1,18 +1,15 @@
 // useSaveQueue.ts
 import { useEffect, useState } from "react";
 import { saveDataToEndpoint } from "./mockApi";
-import { GeneralInfo, StartInfo } from "./models";
-
-interface QueueItem {
-  section: string;
-  data: GeneralInfo | StartInfo;
-}
+import { AppData, GeneralInfo, QueueItem, StartInfo } from "./models";
 
 export const useSaveQueue = (
   initialQueue: QueueItem[],
-  onSaveSuccess: (section: string, data: GeneralInfo | StartInfo) => void
+  version: number,
+  onSaveSuccess: (section: keyof AppData, data: GeneralInfo | StartInfo, version: number) => void
 ) => {
   const [queue, setQueue] = useState<QueueItem[]>(initialQueue);
+  const [currentVersion, setCurrentVersion] = useState(version);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -22,9 +19,10 @@ export const useSaveQueue = (
         const currentItem = queue[0];
         console.log("Saving", currentItem.section);
         try {
-          const response = await saveDataToEndpoint(currentItem.data);
+          const response = await saveDataToEndpoint(currentItem.data, currentVersion);
           console.log(`Save successful for ${currentItem.section}:`, response);
-          onSaveSuccess(currentItem.section, currentItem.data);
+          setCurrentVersion(response.version);
+          onSaveSuccess(currentItem.section, currentItem.data, response.version);
           setQueue((currentQueue) => currentQueue.slice(1));
         } catch (error) {
           console.error(`Save failed for ${currentItem.section}:`, error);
@@ -37,7 +35,7 @@ export const useSaveQueue = (
     processQueue();
   }, [queue, isSaving, onSaveSuccess]);
 
-  const addToQueue = (item: any) => {
+  const addToQueue = (item: QueueItem) => {
     setQueue((currentQueue) => [...currentQueue, item]);
   };
 

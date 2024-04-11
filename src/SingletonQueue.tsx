@@ -4,12 +4,12 @@ import CustomSelect from "./CustomSelect"; // Adjust import paths as needed
 import { AppData } from "./models";
 import createSaveQueue from "./createSaveQueue";
 import "./styles.css";
-import { useSaveQueue } from "./SaveQueueProvider";
+import { useSingletonQueue } from "./SingletonQueueProvider";
 import GeneralCard from "./GeneralCard";
 import StartCard from "./StartCard";
 
-const ProviderQueue: React.FC = () => {
-  const { serverData, dirtyData, updateDirtyData, saveCard } = useSaveQueue();
+const SingeltonQueue: React.FC = () => {
+  const { serverData, dirtyData, currentVersion, updateDirtyData, saveCard, saveMultipleCards } = useSingletonQueue();
 
   const handleSaveData = (section: keyof AppData) => {
     saveCard?.(section);
@@ -19,15 +19,21 @@ const ProviderQueue: React.FC = () => {
     updateDirtyData?.(section, field, value);
   };
 
+  const handleSaveAll = () => saveMultipleCards("general", "start");
+
   return (
     <div className="card-holder">
-      <div>Provider Queue</div>
+      <div className="header">
+        <div>Singleton Queue</div>
+        <button onClick={handleSaveAll}>Save All</button>
+      </div>
       <GeneralCard data={dirtyData.general} onSave={handleSaveData} onFieldBlur={handleBlur} />
       <StartCard data={dirtyData.start} onSave={handleSaveData} onFieldBlur={handleBlur} />
       <div className="data-display">
         <div>
-          <h3>Initial Data:</h3>
+          <h3>Server Data:</h3>
           <pre>{JSON.stringify(serverData, null, 2)}</pre>
+          <pre>Version: {currentVersion}</pre>
         </div>
         <div>
           <h3>Current Data:</h3>
@@ -38,4 +44,4 @@ const ProviderQueue: React.FC = () => {
   );
 };
 
-export default ProviderQueue;
+export default SingeltonQueue;

@@ -1,6 +1,6 @@
 import React, { FC, useState } from "react";
-import ProviderQueueWrapper from "./ProviderQueueWrapper";
-import ReactQueue from "./ReactQueue";
+import SingletonQueueWrapper from "./SingletonQueueWrapper";
+import ReactQueueWrapper from "./ReactQueueWrapper";
 import "./styles.css";
 
 const App: FC = () => {
@@ -17,7 +17,7 @@ const App: FC = () => {
         ></input>
         <label htmlFor="chUseReactQueue">Use react queue</label>
       </div>
-      {useReactQueue ? <ReactQueue /> : <ProviderQueueWrapper />}
+      {useReactQueue ? <ReactQueueWrapper /> : <SingletonQueueWrapper />}
     </div>
   );
 };

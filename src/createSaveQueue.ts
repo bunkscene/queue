@@ -1,13 +1,12 @@
-import { AppData, GeneralInfo, StartInfo } from "./models";
+import { AppData, QueueItem } from "./models";
 import { saveDataToEndpoint } from "./mockApi";
 
-interface QueueItem {
-  section: keyof AppData;
-  data: GeneralInfo | StartInfo;
-}
-
-const createSaveQueue = (onSaveSuccess: (section: keyof AppData, data: any) => void) => {
+const createSaveQueue = (
+  version: number,
+  onSaveSuccess: (section: keyof AppData, data: any, version: number) => void
+) => {
   let queue: QueueItem[] = [];
+  let currentVersion = version;
   let isSaving = false;
 
   const processNext = async () => {
@@ -21,14 +20,16 @@ const createSaveQueue = (onSaveSuccess: (section: keyof AppData, data: any) => v
     }
 
     try {
-      const response = await saveDataToEndpoint(currentItem.data);
+      const response = await saveDataToEndpoint(currentItem.data, currentVersion);
       console.log(`Save successful for ${currentItem.section}:`, response);
-      onSaveSuccess(currentItem.section, currentItem.data);
+      currentVersion = response.version;
+      onSaveSuccess(currentItem.section, currentItem.data, response.version);
     } catch (error) {
       console.error(`Save failed for ${currentItem.section}:`, error);
     } finally {
       isSaving = false;
       if (queue.length > 0) {
+        console.log("Current queue", JSON.stringify(queue));
         processNext(); // Process the next item in the queue if any
       }
     }
@@ -37,6 +38,7 @@ const createSaveQueue = (onSaveSuccess: (section: keyof AppData, data: any) => v
   const addToQueue = (item: QueueItem) => {
     queue.push(item);
     if (!isSaving) {
+      console.log("Current queue", JSON.stringify(queue));
       processNext();
     }
   };

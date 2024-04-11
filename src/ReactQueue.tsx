@@ -7,6 +7,7 @@ import createSaveQueue from "./createSaveQueue";
 import "./styles.css";
 import GeneralCard from "./GeneralCard";
 import StartCard from "./StartCard";
+import { useReactQueue } from "./ReactQueueProvider";
 
 const initialData: AppData = {
   general: {
@@ -22,41 +23,32 @@ const initialData: AppData = {
 };
 
 const ReactQueue: React.FC = () => {
-  const [serverData, setServerData] = useState<AppData>(initialData);
-  const [dirtyData, setDirtyData] = useState<AppData>(initialData);
+  const { serverData, dirtyData, currentVersion, updateDirtyData, saveCard, saveMultipleCards, queue } =
+    useReactQueue();
 
   const handleSaveData = (section: keyof AppData) => {
-    addToQueue({ section, data: dirtyData[section] });
+    saveCard?.(section);
   };
 
   const handleBlur = (section: keyof AppData, field: string, value: string) => {
-    setDirtyData((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: section === "start" ? parseInt(value, 10) : value,
-      },
-    }));
+    updateDirtyData?.(section, field, value);
   };
 
-  const handleSaveSuccess = (section: string, savedData: any) => {
-    setServerData((prev) => ({
-      ...prev,
-      [section]: savedData,
-    }));
-  };
-
-  const { addToQueue, queue } = useSaveQueue([], handleSaveSuccess);
+  const handleSaveAll = () => saveMultipleCards("general", "start");
 
   return (
     <div className="card-holder">
-      <div>React Queue</div>
+      <div className="header">
+        <div>React Queue</div>
+        <button onClick={handleSaveAll}>Save All</button>
+      </div>
       <GeneralCard data={dirtyData.general} onSave={handleSaveData} onFieldBlur={handleBlur} />
       <StartCard data={dirtyData.start} onSave={handleSaveData} onFieldBlur={handleBlur} />
       <div className="data-display">
         <div>
-          <h3>Initial Data:</h3>
+          <h3>Server Data:</h3>
           <pre>{JSON.stringify(serverData, null, 2)}</pre>
+          <pre>Version: {currentVersion}</pre>
         </div>
         <div>
           <h3>Current Data:</h3>
